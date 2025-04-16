@@ -1,0 +1,76 @@
+<h2>Purchase Tracker</h2>
+
+<!-- Tab Switch Buttons -->
+<div>
+  <button onclick="showTab('search')">🔍 Search Items</button>
+  <button onclick="showTab('purchases')">📋 Today's Purchases</button>
+</div>
+
+<hr>
+
+<!-- Search Items Tab -->
+<div id="tab-search">
+  <form method="GET">
+    <input type="text" name="q" placeholder="Search items..." value="{{ query }}">
+    <button type="submit">Search</button>
+  </form>
+
+  <div style="padding: 1rem;">
+    {% for item in items %}
+      <div style="border: 1px solid #ddd; padding: 10px; margin-bottom: 8px; border-radius: 5px;">
+        <strong>{{ item.name }}</strong><br>
+        Supplier: {{ item.supplier }}
+  
+        <form method="POST" style="margin-top: 6px; display: flex; gap: 8px; align-items: center;">
+          {% csrf_token %}
+          <input type="hidden" name="item_id" value="{{ item.id }}">
+          <input type="number" name="quantity" placeholder="Qty" min="1" required style="width: 60px;">
+          <button type="submit">➕ Add</button>
+        </form>
+      </div>
+    {% empty %}
+      <p>No items found.</p>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Purchases Tab -->
+<div id="tab-purchases" style="display:none;">
+    <h3>Today's Purchases</h3>
+    <div style="padding: 1rem;">
+        {% for purchase in today_purchases %}
+          <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 8px; border-radius: 5px;">
+            <strong>{{ purchase.item.name }}</strong><br>
+            Supplier: {{ purchase.item.supplier }}
+      
+            <form method="POST" action="{% url 'edit-purchase' purchase.id %}" style="margin-top: 6px; display: flex; gap: 8px; align-items: center;">
+              {% csrf_token %}
+              <input type="number" name="quantity" value="{{ purchase.quantity }}" min="1" required style="width: 60px;">
+              <button type="submit">✏️ Update</button>
+            </form>
+      
+            <form method="POST" action="{% url 'delete-purchase' purchase.id %}" style="margin-top: 6px;">
+              {% csrf_token %}
+              <button type="submit" onclick="return confirm('Delete this item?')">🗑️ Delete</button>
+            </form>
+          </div>
+        {% empty %}
+          <p>No purchases yet.</p>
+        {% endfor %}
+      
+        <!-- Export to Excel -->
+        <form method="GET" action="{% url 'export-purchases' %}" style="margin-top: 20px;">
+          <button type="submit">⬇️ Export to Excel</button>
+        </form>
+      </div>
+      
+    
+</div>
+
+<script>
+    function showTab(tab) {
+      document.getElementById('tab-search').style.display = (tab === 'search') ? 'block' : 'none';
+      document.getElementById('tab-purchases').style.display = (tab === 'purchases') ? 'block' : 'none';
+    }
+
+  </script>
